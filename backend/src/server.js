@@ -33,6 +33,9 @@ app.use('/api/superadmin', require('./routes/superadmin.routes'));
 app.use('/api/comments', require('./routes/comment.routes'));
 app.use('/api/payments', require('./routes/paymentRoutes'));
 app.use('/api/promotions', require('./routes/promotion.routes'));
+app.use('/api/news', require('./routes/news.routes'));
+app.use('/api/forum', require('./routes/forum.routes'));
+app.use('/api/settings', require('./routes/settings.routes'));
 
 // Health check
 app.get('/api/health', (req, res) => {

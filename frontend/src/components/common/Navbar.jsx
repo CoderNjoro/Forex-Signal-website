@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 import NotificationBell from '../notifications/NotificationBell';
-import { Menu, X, ChevronDown, User, LogOut, LayoutDashboard, Radio, Shield, Home } from 'lucide-react';
+import { Menu, X, ChevronDown, User, LogOut, LayoutDashboard, Radio, Shield, Home, Globe, MessageSquare } from 'lucide-react';
 
 const Navbar = () => {
   const { user, logout, isAdmin, isSuperAdmin } = useAuth();
@@ -81,6 +81,8 @@ const Navbar = () => {
           <div className="hidden lg:flex items-center space-x-1">
             <NavLink to="/signals" label="Live Signals" scrolled={scrolled} isHome={isHome} />
             <NavLink to="/dashboard" label="Dashboard" scrolled={scrolled} isHome={isHome} />
+            <NavLink to="/fundamentals" label="Fundamentals" scrolled={scrolled} isHome={isHome} />
+            <NavLink to="/forum" label="Forums" scrolled={scrolled} isHome={isHome} />
             <NavLink to="/promotions" label="Promotions" scrolled={scrolled} isHome={isHome} />
             {isAdmin && <NavLink to="/admin" label="Admin Portal" scrolled={scrolled} isHome={isHome} />}
             {isSuperAdmin && (
@@ -160,6 +162,8 @@ const Navbar = () => {
         <div className="space-y-4">
           <MobileNavLink to="/signals" label="Live Signals" icon={<Radio size={20}/>} onClick={() => setMobileMenuOpen(false)} />
           <MobileNavLink to="/dashboard" label="User Dashboard" icon={<LayoutDashboard size={20}/>} onClick={() => setMobileMenuOpen(false)} />
+          <MobileNavLink to="/fundamentals" label="Fundamentals & News" icon={<Globe size={20}/>} onClick={() => setMobileMenuOpen(false)} />
+          <MobileNavLink to="/forum" label="Forums" icon={<MessageSquare size={20}/>} onClick={() => setMobileMenuOpen(false)} />
           <MobileNavLink to="/promotions" label="Promotions & Gifts" icon={<Home size={20}/>} onClick={() => setMobileMenuOpen(false)} />
           {isAdmin && <MobileNavLink to="/admin" label="Admin Portal" icon={<Shield size={20}/>} onClick={() => setMobileMenuOpen(false)} />}
           {isSuperAdmin && <MobileNavLink to="/superadmin" label="SuperAdmin Control" icon={<Shield size={20}/>} onClick={() => setMobileMenuOpen(false)} />}

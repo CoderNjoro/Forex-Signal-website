@@ -5,9 +5,20 @@ const User = require('../models/User');
 let io;
 
 const initializeSocket = (server) => {
+  const defaultFrontend = process.env.FRONTEND_URL || 'http://localhost:3000';
+  const allowedOrigins = [
+    defaultFrontend, 
+    'http://localhost:3000', 
+    'http://localhost:3001', 
+    'http://localhost:3002',
+    'http://localhost:5173',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:5173'
+  ];
+
   io = socketIO(server, {
     cors: {
-      origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+      origin: allowedOrigins,
       methods: ['GET', 'POST'],
     },
   });
@@ -67,5 +78,6 @@ const getIO = () => {
 };
 
 module.exports = { initializeSocket, getIO };
+
 
 

@@ -20,6 +20,11 @@ const activitySchema = new mongoose.Schema({
       'create_admin',
       'block_admin',
       'unblock_admin',
+      'create_promotion',
+      'update_promotion',
+      'delete_promotion',
+      'grant_promo_perm',
+      'revoke_promo_perm',
       'other'
     ],
   },

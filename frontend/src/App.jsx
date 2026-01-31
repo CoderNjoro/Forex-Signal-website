@@ -20,6 +20,9 @@ import SuperAdmin from './pages/SuperAdmin';
 import Profile from './pages/Profile';
 import Subscription from './pages/Subscription';
 import Promotions from './components/signals/Promotions';
+import Fundamentals from './pages/Fundamentals';
+import Discussions from './pages/Discussions';
+import Topic from './pages/Topic';
 
 function App() {
   return (
@@ -99,6 +102,9 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
+                  <Route path="/fundamentals" element={<ProtectedRoute><Fundamentals /></ProtectedRoute>} />
+                  <Route path="/forum" element={<ProtectedRoute><Discussions /></ProtectedRoute>} />
+                  <Route path="/forum/:id" element={<ProtectedRoute><Topic /></ProtectedRoute>} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </main>

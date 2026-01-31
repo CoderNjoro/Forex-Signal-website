@@ -5,8 +5,11 @@ import { API_URL } from '../../utils/constants';
 import toast from 'react-hot-toast';
 import Loader from '../common/Loader';
 import { Plus, Edit2, Trash2, Calendar, CheckCircle, XCircle, Image as ImageIcon } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 const ManagePromotions = () => {
+  const { user, isSuperAdmin } = useAuth();
+  const canCreate = isSuperAdmin || user?.canCreatePromotions;
   const [promotions, setPromotions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -106,6 +109,20 @@ const ManagePromotions = () => {
     }
   };
 
+  const handleViewOptIns = async (promo) => {
+    setCurrentPromoTitle(promo.title);
+    setShowOptInsModal(true);
+    setLoadingOptIns(true);
+    try {
+      const data = await promotionService.getOptIns(promo._id);
+      setOptInsList(data);
+    } catch (error) {
+      toast.error('Failed to load opt-ins');
+    } finally {
+      setLoadingOptIns(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
@@ -113,13 +130,19 @@ const ManagePromotions = () => {
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Promotions & Offers</h2>
           <p className="text-gray-500 text-sm">Create and manage dynamic offers for users</p>
         </div>
-        <button
-          onClick={() => { resetForm(); setShowModal(true); }}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-lg shadow-indigo-600/20 font-bold text-sm"
-        >
-          <Plus size={18} />
-          Create Promotion
-        </button>
+        {canCreate ? (
+          <button
+            onClick={() => { resetForm(); setShowModal(true); }}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-lg shadow-indigo-600/20 font-bold text-sm"
+          >
+            <Plus size={18} />
+            Create Promotion
+          </button>
+        ) : (
+          <div className="px-4 py-2 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm font-bold">
+            SuperAdmin must grant promotion creation permission
+          </div>
+        )}
       </div>
 
       {loading ? (
@@ -276,6 +299,53 @@ const ManagePromotions = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Opt-ins Modal */}
+      {showOptInsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl border border-white/10">
+            <div className="sticky top-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+              <div>
+                <h3 className="text-xl font-bold">Promotion Opt-ins</h3>
+                <p className="text-sm text-gray-500">{currentPromoTitle}</p>
+              </div>
+              <button onClick={() => setShowOptInsModal(false)} className="text-gray-500 hover:text-gray-700 p-2"><XCircle size={24} /></button>
+            </div>
+            
+            <div className="p-6">
+              {loadingOptIns ? (
+                <div className="flex justify-center py-12"><Loader /></div>
+              ) : optInsList.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <Users size={48} className="mx-auto mb-4 opacity-20" />
+                  <p>No users have opted in yet.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-2">
+                    <span>User</span>
+                    <span>Opt-in Date</span>
+                  </div>
+                  {optInsList.map((optIn) => (
+                    <div key={optIn._id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-2xl">
+                      <div>
+                        <div className="font-bold text-gray-900 dark:text-white">{optIn.user.username}</div>
+                        <div className="text-sm text-gray-500">{optIn.user.email}</div>
+                      </div>
+                      <div className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                        {new Date(optIn.optInDate).toLocaleString()}
+                      </div>
+                    </div>
+                  ))}
+                  <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 text-right text-sm text-gray-500">
+                    Total Participants: <span className="font-bold text-indigo-600">{optInsList.length}</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

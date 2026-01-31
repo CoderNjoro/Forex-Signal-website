@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { superAdminService } from '../services/superadmin.service';
+import settingsService from '../services/settings.service';
 import toast from 'react-hot-toast';
 import { formatDate } from '../utils/helpers';
 import { 
@@ -16,7 +17,9 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
-  Globe
+  Globe,
+  Settings,
+  DollarSign
 } from 'lucide-react';
 
 const SuperAdmin = () => {
@@ -28,16 +31,30 @@ const SuperAdmin = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [activeView, setActiveView] = useState('overview'); // 'overview' or 'logs'
+  const [activeView, setActiveView] = useState('overview'); // 'overview', 'logs', or 'settings'
   const [newAdmin, setNewAdmin] = useState({
     username: '',
     email: '',
     password: ''
   });
+  const [subscriptionSettings, setSubscriptionSettings] = useState({ usd: 10, kes: 1300 });
+  const [settingsLoading, setSettingsLoading] = useState(false);
 
   useEffect(() => {
     fetchInitialData();
+    fetchSettings();
   }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const settings = await settingsService.getSettings();
+      if (settings?.premiumSubscriptionPrice) {
+        setSubscriptionSettings(settings.premiumSubscriptionPrice);
+      }
+    } catch (error) {
+      console.error('Failed to fetch settings:', error);
+    }
+  };
 
   useEffect(() => {
     if (activeView === 'logs') {
@@ -110,6 +127,23 @@ const SuperAdmin = () => {
     }
   };
 
+  const handleUpdateSubscriptionPrice = async (e) => {
+    e.preventDefault();
+    setSettingsLoading(true);
+    try {
+      await settingsService.updateSubscriptionPrice(
+        subscriptionSettings.usd,
+        subscriptionSettings.kes
+      );
+      toast.success('Subscription price updated successfully');
+      fetchSettings();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update subscription price');
+    } finally {
+      setSettingsLoading(false);
+    }
+  };
+
   if (loading && !overview) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -156,9 +190,105 @@ const SuperAdmin = () => {
         >
           Detailed Activity Logs
         </button>
+        <button 
+          onClick={() => setActiveView('settings')}
+          className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+            activeView === 'settings' 
+            ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-white shadow-sm' 
+            : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+          }`}
+        >
+          Settings
+        </button>
       </div>
 
-      {activeView === 'overview' ? (
+      {activeView === 'settings' ? (
+        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden animate-in slide-in-from-bottom-4 duration-500">
+          <div className="p-8 border-b border-gray-100 dark:border-gray-700">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+              <Settings size={28} className="text-indigo-600" />
+              Subscription Price Settings
+            </h2>
+            <p className="text-gray-500 dark:text-gray-400 mt-2">Configure premium subscription pricing for testing payment integrations</p>
+          </div>
+          
+          <div className="p-8">
+            <form onSubmit={handleUpdateSubscriptionPrice} className="space-y-6 max-w-2xl">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">
+                    USD Price
+                  </label>
+                  <div className="relative">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                      <DollarSign size={20} />
+                    </div>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      required
+                      className="w-full pl-12 pr-4 py-4 rounded-2xl border border-gray-100 dark:border-gray-700 dark:bg-gray-900 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-semibold"
+                      placeholder="10.00"
+                      value={subscriptionSettings.usd}
+                      onChange={(e) => setSubscriptionSettings({...subscriptionSettings, usd: parseFloat(e.target.value) || 0})}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2 ml-1">Price in US Dollars for cryptocurrency payments</p>
+                </div>
+                
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">
+                    KES Price
+                  </label>
+                  <div className="relative">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                      <DollarSign size={20} />
+                    </div>
+                    <input
+                      type="number"
+                      step="1"
+                      min="0"
+                      required
+                      className="w-full pl-12 pr-4 py-4 rounded-2xl border border-gray-100 dark:border-gray-700 dark:bg-gray-900 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-semibold"
+                      placeholder="1300"
+                      value={subscriptionSettings.kes}
+                      onChange={(e) => setSubscriptionSettings({...subscriptionSettings, kes: parseInt(e.target.value) || 0})}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2 ml-1">Price in Kenyan Shillings for M-Pesa payments</p>
+                </div>
+              </div>
+              
+              <div className="pt-6">
+                <button
+                  type="submit"
+                  disabled={settingsLoading}
+                  className="w-full md:w-auto px-8 py-4 rounded-2xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-xl shadow-indigo-200 dark:shadow-none flex items-center justify-center gap-2"
+                >
+                  {settingsLoading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    <>
+                      <Settings size={20} />
+                      Update Subscription Price
+                    </>
+                  )}
+                </button>
+              </div>
+              
+              <div className="mt-6 p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-2xl">
+                <p className="text-sm text-indigo-700 dark:text-indigo-300 font-medium">
+                  <strong>Note:</strong> Changes will immediately affect the subscription page and payment flows. Use this to test payment integrations with different amounts.
+                </p>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : activeView === 'overview' ? (
         <>
           {/* Stats Overview */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

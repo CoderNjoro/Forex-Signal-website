@@ -46,6 +46,7 @@ exports.register = async (req, res) => {
         role: user.role,
         subscriptionType: user.subscriptionType,
         isAdminBlocked: user.isAdminBlocked,
+        canCreatePromotions: user.canCreatePromotions,
         token: generateToken(user._id),
       });
     } else {
@@ -91,6 +92,7 @@ exports.login = async (req, res) => {
         role: user.role,
         subscriptionType: user.subscriptionType,
         isAdminBlocked: user.isAdminBlocked,
+        canCreatePromotions: user.canCreatePromotions,
         token: generateToken(user._id),
       });
     } else {
@@ -114,6 +116,7 @@ exports.getMe = async (req, res) => {
       role: user.role,
       subscriptionType: user.subscriptionType,
       isAdminBlocked: user.isAdminBlocked,
+      canCreatePromotions: user.canCreatePromotions,
       createdAt: user.createdAt,
       lastLogin: user.lastLogin,
     });

@@ -14,13 +14,30 @@ const PaymentModal = ({ isOpen, onClose, plan }) => {
 
   if (!isOpen) return null;
 
-  const handleMpesaSubmit = async (e, forcedPhone = null) => {
-    if (e) e.preventDefault();
+  const handleMpesaSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!phoneNumber.trim()) {
+      toast.error('Please enter your M-Pesa phone number');
+      return;
+    }
+
+    // Clean phone number (remove spaces and +)
+    const cleanPhone = phoneNumber.replace(/\s+/g, '').replace(/\+/g, '');
+    
+    // Basic validation: should be 9-12 digits
+    // Backend will handle formatting (0 -> 254, 7/1 -> 254 prefix)
+    const phoneRegex = /^[0-9]{9,12}$/;
+    
+    if (!phoneRegex.test(cleanPhone)) {
+      toast.error('Please enter a valid M-Pesa phone number (e.g., 0712345678 or 254712345678)');
+      return;
+    }
+
     setLoading(true);
     try {
-      const finalPhone = forcedPhone || phoneNumber;
-      // Assuming $10 = 1300 KES
-      const res = await paymentService.initiateMpesa(finalPhone, 1300);
+      const kesAmount = plan?.kesPrice || 1300; // Default to 1300 if not provided
+      const res = await paymentService.initiateMpesa(cleanPhone, kesAmount);
       toast.success(res.message);
       onClose();
     } catch (error) {
@@ -33,7 +50,8 @@ const PaymentModal = ({ isOpen, onClose, plan }) => {
   const handleCryptoInitiate = async () => {
     setLoading(true);
     try {
-      const res = await paymentService.initiateCrypto(10);
+      const usdAmount = plan?.price || 10; // Default to 10 if not provided
+      const res = await paymentService.initiateCrypto(usdAmount);
       setCryptoData(res);
       setStep(2);
     } catch (error) {
@@ -99,7 +117,7 @@ const PaymentModal = ({ isOpen, onClose, plan }) => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-black text-white">$10</p>
+                  <p className="text-2xl font-black text-white">${plan?.price || 10}</p>
                   <p className="text-xs text-indigo-300/60">One-time payment</p>
                 </div>
               </div>
@@ -162,27 +180,44 @@ const PaymentModal = ({ isOpen, onClose, plan }) => {
               </div>
 
               {method === 'mpesa' ? (
-                <div className="space-y-4 animate-in slide-in-from-top-2">
-                  <div className="p-6 bg-indigo-600/5 border border-indigo-500/20 rounded-2xl text-center">
-                    <p className="text-indigo-300/60 text-xs font-bold uppercase tracking-widest mb-2">Payment Destination</p>
-                    <p className="text-white text-xl font-mono font-black tracking-wider">0742336537</p>
-                    <p className="text-indigo-300/40 text-[10px] mt-2 italic">An STK prompt will be sent to this number for 1,300 KES ($10)</p>
+                <form onSubmit={handleMpesaSubmit} className="space-y-4 animate-in slide-in-from-top-2">
+                  <div className="space-y-3">
+                    <label className="block text-xs font-bold text-indigo-200 uppercase tracking-widest ml-1">
+                      M-Pesa Phone Number
+                    </label>
+                    <div className="relative">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-300/40">
+                        <Smartphone size={20} />
+                      </div>
+                      <input
+                        type="tel"
+                        placeholder="0712345678 or 254712345678"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:border-indigo-500 transition-all font-mono text-sm placeholder:text-indigo-300/30"
+                        disabled={loading}
+                      />
+                    </div>
+                    <p className="text-indigo-300/40 text-xs ml-1">
+                      An STK prompt will be sent to your phone to enter your M-Pesa PIN
+                    </p>
                   </div>
+                  
                   <button
-                    onClick={() => handleMpesaSubmit({ preventDefault: () => {} }, '0742336537')}
-                    disabled={loading}
-                    className="w-full py-5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold rounded-2xl transition-all shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-3 group"
+                    type="submit"
+                    disabled={loading || !phoneNumber.trim()}
+                    className="w-full py-5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-2xl transition-all shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-3 group"
                   >
                     {loading ? (
                       <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     ) : (
                       <>
-                        Confirm and Pay $10 Now
+                        Pay with M-Pesa (KES {plan?.kesPrice || 1300})
                         <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                       </>
                     )}
                   </button>
-                </div>
+                </form>
               ) : (
                 <button
                   onClick={handleCryptoInitiate}
@@ -199,7 +234,7 @@ const PaymentModal = ({ isOpen, onClose, plan }) => {
                   <Bitcoin size={32} />
                 </div>
                 <h4 className="text-xl font-bold text-white">Send USDT</h4>
-                <p className="text-indigo-300/50 text-sm">Please send exactly $10 of USDT</p>
+                <p className="text-indigo-300/50 text-sm">Please send exactly ${plan?.price || 10} of USDT</p>
               </div>
 
               <div className="space-y-4">

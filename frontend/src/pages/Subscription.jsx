@@ -1,9 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Check, X, Star, Zap, Shield, Crown } from 'lucide-react';
 import PaymentModal from '../components/common/PaymentModal';
+import settingsService from '../services/settings.service';
 
 const Subscription = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [subscriptionPrice, setSubscriptionPrice] = useState({ usd: 10, kes: 1300 });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const settings = await settingsService.getSettings();
+        if (settings?.premiumSubscriptionPrice) {
+          setSubscriptionPrice(settings.premiumSubscriptionPrice);
+        }
+      } catch (error) {
+        console.error('Failed to fetch subscription price:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSettings();
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#050505] pt-28 pb-20 px-4 relative overflow-hidden">
@@ -74,7 +94,11 @@ const Subscription = () => {
               <div className="mb-8">
                 <h3 className="text-indigo-400 font-bold uppercase tracking-widest text-sm mb-4">Professional</h3>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-5xl font-black text-white">$10</span>
+                  {loading ? (
+                    <span className="text-5xl font-black text-white">...</span>
+                  ) : (
+                    <span className="text-5xl font-black text-white">${subscriptionPrice.usd}</span>
+                  )}
                   <span className="text-indigo-300/40 font-medium">/lifetime access</span>
                 </div>
               </div>
@@ -121,7 +145,7 @@ const Subscription = () => {
       <PaymentModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
-        plan={{ name: 'Professional', price: 10 }}
+        plan={{ name: 'Professional', price: subscriptionPrice.usd, kesPrice: subscriptionPrice.kes }}
       />
     </div>
   );

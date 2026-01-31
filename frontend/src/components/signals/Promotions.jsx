@@ -132,12 +132,29 @@ const Promotions = () => {
               </div>
 
               <div className="mt-12 p-6 rounded-3xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800">
-                <p className="text-indigo-700 dark:text-indigo-300 font-bold mb-4 text-center">Ready to participate?</p>
+                <p className="text-indigo-700 dark:text-indigo-300 font-bold mb-4 text-center">
+                  {selectedPromo.hasOptedIn ? "You're already participating!" : "Ready to participate?"}
+                </p>
                 <button 
-                  onClick={() => { setSelectedPromo(null); toast.success("Good luck! You're in!"); }}
-                  className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black transition-all shadow-lg shadow-indigo-600/20 active:scale-95"
+                  disabled={selectedPromo.hasOptedIn}
+                  onClick={async () => {
+                    try {
+                      await promotionService.optIn(selectedPromo._id);
+                      toast.success("Good luck! You're in!");
+                      // Refresh promotions to update status
+                      loadPromotions();
+                      setSelectedPromo(null);
+                    } catch (error) {
+                      toast.error(error.response?.data?.message || 'Failed to opt in');
+                    }
+                  }}
+                  className={`w-full py-4 rounded-2xl font-black transition-all shadow-lg active:scale-95 ${
+                    selectedPromo.hasOptedIn 
+                      ? 'bg-green-500 text-white cursor-default shadow-green-500/20' 
+                      : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-600/20'
+                  }`}
                 >
-                  OPT-IN NOW
+                  {selectedPromo.hasOptedIn ? 'OPTED IN' : 'OPT-IN NOW'}
                 </button>
               </div>
             </div>

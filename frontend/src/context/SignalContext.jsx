@@ -25,7 +25,7 @@ export const SignalProvider = ({ children }) => {
     const socketUrl = API_URL.replace('/api', '');
     const token = localStorage.getItem('token');
     const newSocket = io(socketUrl, {
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'],
       auth: { token }
     });
 
