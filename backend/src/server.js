@@ -34,6 +34,9 @@ const corsOptions = {
       'http://localhost:5173',
       'http://127.0.0.1:3000',
       'http://127.0.0.1:5173',
+      'http://localhost:5500',  // Live Server
+      'http://127.0.0.1:5500',  // Live Server
+      'null',  // For local file:// protocol
     ].filter(Boolean); // Remove undefined values
     
     // Log CORS info for debugging
