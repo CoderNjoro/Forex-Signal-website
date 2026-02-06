@@ -68,41 +68,36 @@ router.post('/initialize-superadmin', async (req, res) => {
     if (existingAdmin) {
       console.log('⚠️  User already exists:', existingAdmin.email);
       
-      // If exists but not superadmin, upgrade them
-      if (existingAdmin.role !== 'superadmin') {
-        console.log('🔄 Upgrading existing user to superadmin...');
-        existingAdmin.role = 'superadmin';
-        existingAdmin.canCreatePromotions = true;
-        existingAdmin.subscriptionType = 'premium';
-        existingAdmin.isActive = true;
-        existingAdmin.isAdminBlocked = false;
-        await existingAdmin.save({ validateBeforeSave: false });
-        
-        return res.json({ 
-          success: true,
-          message: 'User upgraded to superadmin successfully',
-          email: existingAdmin.email,
-          username: existingAdmin.username
-        });
-      }
+      // Update/Fix existing account
+      console.log('🔄 Updating existing user permissions and resetting password...');
+      existingAdmin.role = 'superadmin';
+      existingAdmin.canCreatePromotions = true;
+      existingAdmin.subscriptionType = 'premium';
+      existingAdmin.isActive = true;
+      existingAdmin.isAdminBlocked = false;
+      
+      // RESET PASSWORD to plain text (Model pre-save hook will hash it)
+      existingAdmin.password = 'Admin@123';
+      
+      await existingAdmin.save();
       
       return res.json({ 
         success: true,
-        message: 'Superadmin already exists',
+        message: 'Superadmin updated successfully. Password reset to: Admin@123',
         email: existingAdmin.email,
-        username: existingAdmin.username
+        username: existingAdmin.username,
+        warning: 'Please change the default password (Admin@123) immediately!'
       });
     }
 
-    // Create new superadmin
+    // Create new superadmin with PLAIN TEXT password
+    // The User model pre-save hook will handle hashing automatically
     console.log('👤 Creating new superadmin account...');
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash('Admin@123', salt);
 
     const superadmin = await User.create({
       username: 'superadmin',
       email: 'admin@forex.com',
-      password: hashedPassword,
+      password: 'Admin@123', // Plain text -> Model hashes it
       role: 'superadmin',
       subscriptionType: 'premium',
       canCreatePromotions: true,
