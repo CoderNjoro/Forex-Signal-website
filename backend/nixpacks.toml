@@ -1,0 +1,15 @@
+# Railway/Nixpacks configuration for backend
+# This file helps Railway detect and build the Node.js application correctly
+
+[phases.setup]
+nixPkgs = ['nodejs-18_x']
+
+[phases.install]
+cmds = ['npm ci']
+
+# No build phase needed for Node.js backend - just install and start
+[phases.build]
+cmds = ['npm run build']
+
+[start]
+cmd = 'npm start'

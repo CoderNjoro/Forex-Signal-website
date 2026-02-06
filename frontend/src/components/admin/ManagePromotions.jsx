@@ -4,7 +4,7 @@ import { formatDate } from '../../utils/helpers';
 import { API_URL } from '../../utils/constants';
 import toast from 'react-hot-toast';
 import Loader from '../common/Loader';
-import { Plus, Edit2, Trash2, Calendar, CheckCircle, XCircle, Image as ImageIcon } from 'lucide-react';
+import { Plus, Edit2, Trash2, Calendar, CheckCircle, XCircle, Image as ImageIcon, Users } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const ManagePromotions = () => {
@@ -14,6 +14,10 @@ const ManagePromotions = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingPromo, setEditingPromo] = useState(null);
+  const [showOptInsModal, setShowOptInsModal] = useState(false);
+  const [currentPromoTitle, setCurrentPromoTitle] = useState('');
+  const [loadingOptIns, setLoadingOptIns] = useState(false);
+  const [optInsList, setOptInsList] = useState([]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -172,10 +176,10 @@ const ManagePromotions = () => {
                   <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">{promo.description}</p>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => handleEdit(promo)} className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors">
+                  <button onClick={() => handleEdit(promo)} className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors" title="Edit">
                     <Edit2 size={16} />
                   </button>
-                  <button onClick={() => handleDelete(promo._id)} className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors">
+                  <button onClick={() => handleDelete(promo._id)} className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors" title="Delete">
                     <Trash2 size={16} />
                   </button>
                 </div>
@@ -197,6 +201,16 @@ const ManagePromotions = () => {
                   <img src={`${API_URL.replace('/api', '')}/${promo.image}`} alt={promo.title} className="w-full h-full object-cover" />
                 </div>
               )}
+
+              <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                <button
+                  onClick={() => handleViewOptIns(promo)}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl transition-all font-bold text-sm"
+                >
+                  <Users size={16} />
+                  View Opt-ins
+                </button>
+              </div>
             </div>
           ))}
         </div>

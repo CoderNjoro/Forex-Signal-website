@@ -14,13 +14,34 @@ const initializeSocket = (server) => {
     'http://localhost:5173',
     'http://127.0.0.1:3000',
     'http://127.0.0.1:5173'
-  ];
+  ].filter(Boolean); // Remove undefined values
+  
+  // In production, allow all origins if FRONTEND_URL is set (for flexibility)
+  // In development, use strict list
+  const corsConfig = process.env.NODE_ENV === 'production' && process.env.FRONTEND_URL
+    ? {
+        origin: function (origin, callback) {
+          // Allow requests with no origin
+          if (!origin) return callback(null, true);
+          
+          // Allow if in allowed list or matches FRONTEND_URL pattern
+          if (allowedOrigins.includes(origin) || origin.startsWith(process.env.FRONTEND_URL)) {
+            callback(null, true);
+          } else {
+            callback(new Error('Not allowed by CORS'));
+          }
+        },
+        methods: ['GET', 'POST'],
+        credentials: true,
+      }
+    : {
+        origin: allowedOrigins,
+        methods: ['GET', 'POST'],
+        credentials: true,
+      };
 
   io = socketIO(server, {
-    cors: {
-      origin: allowedOrigins,
-      methods: ['GET', 'POST'],
-    },
+    cors: corsConfig,
   });
 
   io.use(async (socket, next) => {

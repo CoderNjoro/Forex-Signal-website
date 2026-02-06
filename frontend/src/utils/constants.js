@@ -1,4 +1,27 @@
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5080/api';
+// Get API URL from environment variable, fallback to localhost for development
+const getApiUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  
+  // If environment variable is set, use it
+  if (envUrl && envUrl.trim() !== '') {
+    return envUrl.trim();
+  }
+  
+  // Development fallback
+  if (import.meta.env.DEV) {
+    return 'http://localhost:5000/api';
+  }
+  
+  // Production: require environment variable
+  console.error('❌ ERROR: VITE_API_URL environment variable is not set!');
+  console.error('Please set VITE_API_URL in Vercel environment variables.');
+  console.error('Format: https://your-backend.railway.app/api');
+  
+  // Return empty string to prevent connection attempts
+  return '';
+};
+
+export const API_URL = getApiUrl();
 
 export const CURRENCY_PAIRS = [
   'EUR/USD',
