@@ -27,13 +27,30 @@ const corsOptions = {
       'http://127.0.0.1:5173',
     ].filter(Boolean); // Remove undefined values
     
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
+    // Log CORS info for debugging
+    if (process.env.NODE_ENV === 'production') {
+      console.log('🔍 CORS Check:');
+      console.log('  Request Origin:', origin);
+      console.log('  FRONTEND_URL:', process.env.FRONTEND_URL);
+      console.log('  Allowed Origins:', allowedOrigins);
+    }
     
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) {
+      console.log('  ✅ Allowing request with no origin');
+      return callback(null, true);
+    }
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      console.log('  ✅ Origin allowed:', origin);
+      callback(null, true);
+    } else if (process.env.NODE_ENV === 'development') {
+      console.log('  ✅ Development mode - allowing origin:', origin);
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      console.error('  ❌ CORS Error: Origin not allowed:', origin);
+      console.error('  Expected FRONTEND_URL:', process.env.FRONTEND_URL);
+      callback(new Error(`Not allowed by CORS. Origin: ${origin}, Expected: ${process.env.FRONTEND_URL}`));
     }
   },
   credentials: true,
