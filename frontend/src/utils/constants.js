@@ -2,9 +2,28 @@
 const getApiUrl = () => {
   const envUrl = import.meta.env.VITE_API_URL;
   
-  // If environment variable is set, use it
+  // If environment variable is set, validate and use it
   if (envUrl && envUrl.trim() !== '') {
-    return envUrl.trim();
+    let url = envUrl.trim();
+    
+    // Ensure URL has protocol
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      console.warn('⚠️ VITE_API_URL missing protocol, adding https://');
+      url = `https://${url}`;
+    }
+    
+    // Ensure URL ends with /api
+    if (!url.endsWith('/api')) {
+      // Remove trailing slash if present
+      url = url.replace(/\/$/, '');
+      // Add /api if not present
+      if (!url.endsWith('/api')) {
+        url = `${url}/api`;
+      }
+    }
+    
+    console.log('✅ Using API URL:', url);
+    return url;
   }
   
   // Development fallback
