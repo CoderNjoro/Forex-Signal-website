@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Initialize Superadmin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #856404;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+            display: block;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+            display: block;
+        }
+
+        .result h3 {
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .result pre {
+            background: rgba(0, 0, 0, 0.05);
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+
+        .credentials {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 4px;
+        }
+
+        .credentials h4 {
+            color: #0d47a1;
+            margin-bottom: 10px;
+        }
+
+        .credentials p {
+            margin: 5px 0;
+            font-family: 'Courier New', monospace;
+            color: #1565c0;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Initialize Superadmin</h1>
+        <p class="subtitle">Create the superadmin account in your production database</p>
+
+        <div class="warning">
+            ⚠️ <strong>Important:</strong> This is a one-time setup. After creating the superadmin, you should remove this endpoint from your code and redeploy.
+        </div>
+
+        <form id="initForm">
+            <div class="form-group">
+                <label for="backendUrl">Backend URL</label>
+                <input 
+                    type="url" 
+                    id="backendUrl" 
+                    placeholder="https://your-backend.railway.app"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="secretKey">Secret Key</label>
+                <input 
+                    type="password" 
+                    id="secretKey" 
+                    placeholder="Enter your SUPERADMIN_INIT_SECRET"
+                    required
+                >
+                <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">
+                    This should match the SUPERADMIN_INIT_SECRET environment variable in Railway
+                </small>
+            </div>
+
+            <button type="submit" id="submitBtn">
+                Initialize Superadmin
+            </button>
+        </form>
+
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('initForm');
+        const resultDiv = document.getElementById('result');
+        const submitBtn = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const backendUrl = document.getElementById('backendUrl').value.trim().replace(/\/$/, '');
+            const secretKey = document.getElementById('secretKey').value;
+
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="loader"></span>Initializing...';
+            resultDiv.className = 'result';
+            resultDiv.style.display = 'none';
+
+            try {
+                const response = await fetch(`${backendUrl}/api/auth/initialize-superadmin`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ secretKey }),
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <h3>✅ ${data.message}</h3>
+                        <div class="credentials">
+                            <h4>Login Credentials:</h4>
+                            <p><strong>Email:</strong> ${data.email}</p>
+                            <p><strong>Username:</strong> ${data.username}</p>
+                            <p><strong>Password:</strong> Admin@123</p>
+                        </div>
+                        ${data.warning ? `<p style="margin-top: 15px; color: #d32f2f;"><strong>⚠️ ${data.warning}</strong></p>` : ''}
+                        <p style="margin-top: 15px;"><strong>Next Steps:</strong></p>
+                        <ol style="margin-left: 20px; margin-top: 10px;">
+                            <li>Login to your app with the credentials above</li>
+                            <li>Change your password immediately</li>
+                            <li>Remove the /initialize-superadmin endpoint from auth.routes.js</li>
+                            <li>Redeploy your backend</li>
+                        </ol>
+                    `;
+                } else {
+                    throw new Error(data.message || 'Failed to initialize superadmin');
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <h3>❌ Error</h3>
+                    <p>${error.message}</p>
+                    <pre>${error.stack || ''}</pre>
+                `;
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Initialize Superadmin';
+            }
+        });
+    </script>
+</body>
+</html>

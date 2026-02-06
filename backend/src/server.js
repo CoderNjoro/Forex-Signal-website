@@ -19,8 +19,17 @@ const app = express();
 // CORS Configuration
 const corsOptions = {
   origin: function (origin, callback) {
+    // Normalize URLs by removing trailing slashes for comparison
+    const normalizeUrl = (url) => {
+      if (!url) return url;
+      return url.trim().replace(/\/+$/, ''); // Remove trailing slashes
+    };
+    
+    const frontendUrl = normalizeUrl(process.env.FRONTEND_URL);
+    const normalizedOrigin = normalizeUrl(origin);
+    
     const allowedOrigins = [
-      process.env.FRONTEND_URL,
+      frontendUrl,
       'http://localhost:3000',
       'http://localhost:5173',
       'http://127.0.0.1:3000',
@@ -31,7 +40,9 @@ const corsOptions = {
     if (process.env.NODE_ENV === 'production') {
       console.log('🔍 CORS Check:');
       console.log('  Request Origin:', origin);
+      console.log('  Normalized Origin:', normalizedOrigin);
       console.log('  FRONTEND_URL:', process.env.FRONTEND_URL);
+      console.log('  Normalized FRONTEND_URL:', frontendUrl);
       console.log('  Allowed Origins:', allowedOrigins);
     }
     
@@ -41,7 +52,10 @@ const corsOptions = {
       return callback(null, true);
     }
     
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    // Check if normalized origin matches any allowed origin
+    const isAllowed = allowedOrigins.some(allowed => normalizeUrl(allowed) === normalizedOrigin);
+    
+    if (isAllowed) {
       console.log('  ✅ Origin allowed:', origin);
       callback(null, true);
     } else if (process.env.NODE_ENV === 'development') {
@@ -49,8 +63,9 @@ const corsOptions = {
       callback(null, true);
     } else {
       console.error('  ❌ CORS Error: Origin not allowed:', origin);
-      console.error('  Expected FRONTEND_URL:', process.env.FRONTEND_URL);
-      callback(new Error(`Not allowed by CORS. Origin: ${origin}, Expected: ${process.env.FRONTEND_URL}`));
+      console.error('  Normalized Origin:', normalizedOrigin);
+      console.error('  Expected FRONTEND_URL:', frontendUrl);
+      callback(new Error(`Not allowed by CORS. Origin: ${origin}, Expected: ${frontendUrl}`));
     }
   },
   credentials: true,
