@@ -2,10 +2,17 @@ const axios = require('axios');
 const dotenv = require('dotenv');
 dotenv.config();
 
+const getMpesaBaseUrl = () => {
+    return process.env.MPESA_ENVIRONMENT === 'production' 
+        ? "https://api.safaricom.co.ke" 
+        : "https://sandbox.safaricom.co.ke";
+};
+
 const getMpesaToken = async () => {
     const consumer_key = process.env.MPESA_CONSUMER_KEY;
     const consumer_secret = process.env.MPESA_CONSUMER_SECRET;
-    const url = "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials";
+    const baseUrl = getMpesaBaseUrl();
+    const url = `${baseUrl}/oauth/v1/generate?grant_type=client_credentials`;
 
     const auth = Buffer.from(`${consumer_key}:${consumer_secret}`).toString('base64');
 
@@ -24,7 +31,8 @@ const getMpesaToken = async () => {
 
 const initiateSTKPush = async (phoneNumber, amount) => {
     const token = await getMpesaToken();
-    const url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest";
+    const baseUrl = getMpesaBaseUrl();
+    const url = `${baseUrl}/mpesa/stkpush/v1/processrequest`;
     
     const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14);
     const password = Buffer.from(
@@ -48,7 +56,7 @@ const initiateSTKPush = async (phoneNumber, amount) => {
     };
 
     try {
-        console.log('Initiating STK Push for:', phoneNumber, 'Amount:', amount);
+        console.log(`Initiating STK Push (${process.env.MPESA_ENVIRONMENT || 'sandbox'}) for:`, phoneNumber, 'Amount:', amount);
         const response = await axios.post(url, data, {
             headers: {
                 Authorization: `Bearer ${token}`,
