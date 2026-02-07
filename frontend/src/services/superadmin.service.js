@@ -30,11 +30,17 @@ const getActivityLogs = async (page = 1) => {
   return response.data;
 };
 
+const getSubscriptions = async () => {
+  const response = await api.get('/superadmin/subscriptions');
+  return response.data;
+};
+
 export const superAdminService = {
   getAdmins,
   createAdmin,
   toggleAdminBlock,
   togglePromotionPermission,
   getOverview,
-  getActivityLogs
+  getActivityLogs,
+  getSubscriptions
 };

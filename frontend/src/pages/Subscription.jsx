@@ -12,17 +12,23 @@ const Subscription = () => {
     const fetchSettings = async () => {
       try {
         const settings = await settingsService.getSettings();
+        console.log('Fetched Settings:', settings);
         if (settings?.premiumSubscriptionPrice) {
           setSubscriptionPrice(settings.premiumSubscriptionPrice);
         }
       } catch (error) {
         console.error('Failed to fetch subscription price:', error);
+        toast.error('Could not load latest pricing');
       } finally {
         setLoading(false);
       }
     };
 
     fetchSettings();
+    
+    // Optional: Poll for updates every 30 seconds
+    const interval = setInterval(fetchSettings, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   return (

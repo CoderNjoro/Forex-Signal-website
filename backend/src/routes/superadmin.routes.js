@@ -6,6 +6,7 @@ const {
   toggleAdminBlock,
   togglePromotionPermission,
   getOverview,
+  getSubscriptions
 } = require('../controllers/superAdminController');
 const { updateSubscriptionPrice } = require('../controllers/settingsController');
 const { protect } = require('../middleware/auth.middleware');
@@ -19,6 +20,7 @@ router.post('/admins', createAdmin);
 router.patch('/admins/:id/block', toggleAdminBlock);
 router.patch('/admins/:id/promotion-perm', togglePromotionPermission);
 router.get('/overview', getOverview);
+router.get('/subscriptions', getSubscriptions);
 router.put('/settings/subscription-price', updateSubscriptionPrice);
 
 module.exports = router;

@@ -146,3 +146,40 @@ exports.getOverview = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// @desc    Get premium subscriptions
+// @route   GET /api/superadmin/subscriptions
+// @access  Private/Superadmin
+exports.getSubscriptions = async (req, res) => {
+  try {
+    const Payment = require('../models/Payment');
+    const users = await User.find({ subscriptionType: 'premium' })
+      .select('username email subscriptionExpiresAt createdAt')
+      .lean();
+
+    const subscriptions = await Promise.all(users.map(async (user) => {
+      // Find the most recent completed payment for this user
+      const payment = await Payment.findOne({ user: user._id, status: 'completed' })
+        .sort('-createdAt')
+        .select('amount currency paymentMethod createdAt');
+
+      return {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        expiresAt: user.subscriptionExpiresAt,
+        plan: 'Premium',
+        payment: payment ? {
+          amount: payment.amount,
+          currency: payment.currency,
+          method: payment.paymentMethod,
+          date: payment.createdAt
+        } : null
+      };
+    }));
+
+    res.json(subscriptions);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

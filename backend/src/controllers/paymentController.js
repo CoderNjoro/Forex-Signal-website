@@ -83,6 +83,11 @@ exports.mpesaCallback = async (req, res) => {
             const user = await User.findById(payment.user);
             if (user) {
                 user.subscriptionType = 'premium';
+                // Set to 99 years for "Lifetime" access
+                const expiryDate = new Date();
+                expiryDate.setFullYear(expiryDate.getFullYear() + 99);
+                user.subscriptionExpiresAt = expiryDate;
+                
                 await user.save();
                 await logActivity({
                     userId: user._id, 

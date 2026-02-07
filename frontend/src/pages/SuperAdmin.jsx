@@ -31,7 +31,9 @@ const SuperAdmin = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [activeView, setActiveView] = useState('overview'); // 'overview', 'logs', or 'settings'
+  const [activeView, setActiveView] = useState('overview'); // 'overview', 'logs', 'settings', or 'subscriptions'
+  const [subscriptions, setSubscriptions] = useState([]);
+  const [subsLoading, setSubsLoading] = useState(false);
   const [newAdmin, setNewAdmin] = useState({
     username: '',
     email: '',
@@ -59,6 +61,8 @@ const SuperAdmin = () => {
   useEffect(() => {
     if (activeView === 'logs') {
       fetchLogs();
+    } else if (activeView === 'subscriptions') {
+      fetchSubscriptions();
     }
   }, [page, activeView]);
 
@@ -88,6 +92,18 @@ const SuperAdmin = () => {
       toast.error('Failed to load detailed activity logs');
     } finally {
       setLogsLoading(false);
+    }
+  };
+
+  const fetchSubscriptions = async () => {
+    try {
+      setSubsLoading(true);
+      const data = await superAdminService.getSubscriptions();
+      setSubscriptions(data);
+    } catch (error) {
+      toast.error('Failed to fetch premium subscriptions');
+    } finally {
+      setSubsLoading(false);
     }
   };
 
@@ -169,30 +185,40 @@ const SuperAdmin = () => {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-2xl w-fit">
+      <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-2xl w-fit overflow-x-auto max-w-full">
         <button 
           onClick={() => setActiveView('overview')}
-          className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+          className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
             activeView === 'overview' 
             ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-white shadow-sm' 
             : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
           }`}
         >
-          Overview & Manage
+          Overview
+        </button>
+        <button 
+          onClick={() => setActiveView('subscriptions')}
+          className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
+            activeView === 'subscriptions' 
+            ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-white shadow-sm' 
+            : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+          }`}
+        >
+          Subscriptions
         </button>
         <button 
           onClick={() => setActiveView('logs')}
-          className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+          className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
             activeView === 'logs' 
             ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-white shadow-sm' 
             : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
           }`}
         >
-          Detailed Activity Logs
+          Activity Logs
         </button>
         <button 
           onClick={() => setActiveView('settings')}
-          className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+          className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
             activeView === 'settings' 
             ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-white shadow-sm' 
             : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
@@ -286,6 +312,92 @@ const SuperAdmin = () => {
                 </p>
               </div>
             </form>
+          </div>
+        </div>
+      ) : activeView === 'subscriptions' ? (
+        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden animate-in slide-in-from-bottom-4 duration-500">
+          <div className="p-8 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+              <Crown size={28} className="text-indigo-600" />
+              Premium Subscriptions
+            </h2>
+            <button 
+              onClick={fetchSubscriptions}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors text-gray-500"
+              title="Refresh subscriptions"
+            >
+              <Activity size={20} className={subsLoading ? 'animate-spin' : ''} />
+            </button>
+          </div>
+          
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50/50 dark:bg-gray-900/50">
+                  <th className="px-8 py-5 text-xs font-bold text-gray-400 uppercase tracking-wider">User</th>
+                  <th className="px-8 py-5 text-xs font-bold text-gray-400 uppercase tracking-wider">Method</th>
+                  <th className="px-8 py-5 text-xs font-bold text-gray-400 uppercase tracking-wider">Amount</th>
+                  <th className="px-8 py-5 text-xs font-bold text-gray-400 uppercase tracking-wider">Subscribed Date</th>
+                  <th className="px-8 py-5 text-xs font-bold text-gray-400 uppercase tracking-wider">Expiration</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                {subsLoading ? (
+                  Array(5).fill(0).map((_, i) => (
+                    <tr key={i} className="animate-pulse">
+                      <td colSpan="5" className="px-8 py-6"><div className="h-4 bg-gray-100 dark:bg-gray-700 rounded-full w-full"></div></td>
+                    </tr>
+                  ))
+                ) : subscriptions.length > 0 ? (
+                  subscriptions.map((sub) => (
+                    <tr key={sub._id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition-colors">
+                      <td className="px-8 py-6">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 font-bold">
+                            {sub.username[0].toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="font-bold text-gray-900 dark:text-white">{sub.username}</p>
+                            <p className="text-sm text-gray-500">{sub.email}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold ${
+                          sub.payment?.method === 'mpesa' 
+                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                            : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
+                        }`}>
+                          {sub.payment?.method === 'mpesa' ? <Smartphone size={14} /> : <Bitcoin size={14} />}
+                          {sub.payment?.method === 'mpesa' ? 'M-Pesa' : 'Crypto'}
+                        </span>
+                      </td>
+                      <td className="px-8 py-6">
+                        <p className="font-bold text-gray-900 dark:text-white">
+                          {sub.payment?.currency} {sub.payment?.amount?.toLocaleString()}
+                        </p>
+                      </td>
+                      <td className="px-8 py-6">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                          {sub.payment?.date ? formatDate(sub.payment.date) : formatDate(sub.createdAt)}
+                        </p>
+                      </td>
+                      <td className="px-8 py-6">
+                         <p className="text-sm text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider">
+                           {sub.expiresAt ? (new Date(sub.expiresAt).getFullYear() > 2100 ? 'Lifetime' : formatDate(sub.expiresAt)) : 'Lifetime'}
+                         </p>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="5" className="px-8 py-12 text-center text-gray-500 font-medium">
+                      No premium subscriptions found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       ) : activeView === 'overview' ? (
