@@ -11,6 +11,11 @@ const getMpesaBaseUrl = () => {
 const getMpesaToken = async () => {
     const consumer_key = process.env.MPESA_CONSUMER_KEY;
     const consumer_secret = process.env.MPESA_CONSUMER_SECRET;
+
+    if (!consumer_key || !consumer_secret) {
+        throw new Error("M-Pesa Configuration Error: Missing MPESA_CONSUMER_KEY or MPESA_CONSUMER_SECRET");
+    }
+
     const baseUrl = getMpesaBaseUrl();
     const url = `${baseUrl}/oauth/v1/generate?grant_type=client_credentials`;
 
@@ -25,11 +30,25 @@ const getMpesaToken = async () => {
         return response.data.access_token;
     } catch (error) {
         console.error('Error generating M-Pesa token:', error.response?.data || error.message);
-        throw new Error(`M-Pesa Token Error: ${error.response?.data?.errorMessage || error.message}`);
+        
+        let errorMessage = error.response?.data?.errorMessage || error.message;
+        if (errorMessage.includes('Invalid Authentication') || error.response?.status === 401) {
+            errorMessage += ` (Check if MPESA_ENVIRONMENT matches your credentials. Current: ${process.env.MPESA_ENVIRONMENT || 'sandbox'})`;
+        }
+        
+        throw new Error(`M-Pesa Token Error: ${errorMessage}`);
     }
 };
 
 const initiateSTKPush = async (phoneNumber, amount) => {
+    if (!process.env.MPESA_SHORTCODE || !process.env.MPESA_PASSKEY) {
+        throw new Error("M-Pesa Configuration Error: Missing MPESA_SHORTCODE or MPESA_PASSKEY");
+    }
+    
+    if (!process.env.BACKEND_URL) {
+        console.warn("Warning: BACKEND_URL is not defined, callback URL might be invalid");
+    }
+
     const token = await getMpesaToken();
     const baseUrl = getMpesaBaseUrl();
     const url = `${baseUrl}/mpesa/stkpush/v1/processrequest`;
@@ -41,6 +60,8 @@ const initiateSTKPush = async (phoneNumber, amount) => {
         timestamp
     ).toString('base64');
 
+    const callBackUrl = `${process.env.BACKEND_URL}/api/payments/mpesa-callback`;
+
     const data = {
         BusinessShortCode: process.env.MPESA_SHORTCODE,
         Password: password,
@@ -50,7 +71,7 @@ const initiateSTKPush = async (phoneNumber, amount) => {
         PartyA: phoneNumber,
         PartyB: process.env.MPESA_SHORTCODE,
         PhoneNumber: phoneNumber,
-        CallBackURL: `${process.env.BACKEND_URL}/api/payments/mpesa-callback`,
+        CallBackURL: callBackUrl,
         AccountReference: "FFSignal Pro",
         TransactionDesc: "Pro Subscription Payment"
     };
@@ -65,7 +86,13 @@ const initiateSTKPush = async (phoneNumber, amount) => {
         return response.data;
     } catch (error) {
         console.error('Error initiating STK Push:', error.response?.data || error.message);
-        throw new Error(`STK Push Error: ${error.response?.data?.errorMessage || error.message}`);
+        // Log the detailed error from Safaricom if available
+        if (error.response?.data) {
+             console.error('Safaricom API Error Details:', JSON.stringify(error.response.data, null, 2));
+        }
+        
+        const errorMessage = error.response?.data?.errorMessage || error.response?.data?.requestId || error.message;
+        throw new Error(`STK Push Error: ${errorMessage}`);
     }
 };
 
