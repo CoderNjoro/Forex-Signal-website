@@ -53,14 +53,23 @@ const initiateSTKPush = async (phoneNumber, amount) => {
     const baseUrl = getMpesaBaseUrl();
     const url = `${baseUrl}/mpesa/stkpush/v1/processrequest`;
     
+    // Sanitize and Validate BACKEND_URL
+    let backendUrl = process.env.BACKEND_URL || "https://forex-signal-website-njoro.up.railway.app";
+    backendUrl = backendUrl.trim().replace(/\/$/, ''); // Remove trailing slash
+    
+    if (!backendUrl.startsWith('http')) {
+        backendUrl = `https://${backendUrl}`; // Ensure protocol exists
+    }
+
+    const callBackUrl = `${backendUrl}/api/payments/mpesa-callback`;
+    console.log("Generated CallBackURL:", callBackUrl);
+
     const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14);
     const password = Buffer.from(
         (process.env.MPESA_SHORTCODE || '') + 
         (process.env.MPESA_PASSKEY || '') + 
         timestamp
     ).toString('base64');
-
-    const callBackUrl = `${process.env.BACKEND_URL}/api/payments/mpesa-callback`;
 
     const data = {
         BusinessShortCode: process.env.MPESA_SHORTCODE,
