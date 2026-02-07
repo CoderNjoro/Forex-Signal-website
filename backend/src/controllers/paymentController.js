@@ -1,7 +1,7 @@
 const Payment = require('../models/Payment');
 const User = require('../models/User');
 const { initiateSTKPush } = require('../utils/mpesa');
-const { logActivity } = require('../utils/activityLogger');
+const logActivity = require('../utils/activityLogger');
 
 // @desc    Initiate M-Pesa Payment
 // @route   POST /api/payments/mpesa
@@ -31,7 +31,12 @@ exports.initiateMpesaPayment = async (req, res) => {
                 status: 'pending'
             });
 
-            await logActivity(req.user.id, 'payment_initiated', `M-Pesa payment of KES ${amount} initiated`);
+            await logActivity({
+                userId: req.user.id, 
+                action: 'payment_initiated', 
+                details: `M-Pesa payment of KES ${amount} initiated`,
+                req
+            });
 
             res.status(200).json({
                 success: true,
@@ -79,7 +84,11 @@ exports.mpesaCallback = async (req, res) => {
             if (user) {
                 user.subscriptionType = 'premium';
                 await user.save();
-                await logActivity(user._id, 'subscription_upgraded', 'User upgraded to Premium via M-Pesa');
+                await logActivity({
+                    userId: user._id, 
+                    action: 'subscription_upgraded', 
+                    details: 'User upgraded to Premium via M-Pesa'
+                });
             }
         } else {
             payment.status = 'failed';
@@ -112,7 +121,12 @@ exports.initiateCryptoPayment = async (req, res) => {
             status: 'pending'
         });
 
-        await logActivity(req.user.id, 'payment_initiated', `Crypto payment of $${amount} initiated`);
+        await logActivity({
+            userId: req.user.id, 
+            action: 'payment_initiated', 
+            details: `Crypto payment of $${amount} initiated`,
+            req
+        });
 
         res.status(200).json({
             success: true,
