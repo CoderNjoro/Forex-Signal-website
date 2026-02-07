@@ -71,14 +71,21 @@ const initiateSTKPush = async (phoneNumber, amount) => {
         timestamp
     ).toString('base64');
 
+    // Determine Transaction Type (Paybill vs Buy Goods)
+    const transactionType = process.env.MPESA_TRANSACTION_TYPE || "CustomerPayBillOnline";
+    
+    // For Buy Goods, PartyB is usually the Till Number (if different from Shortcode)
+    // For Paybill, PartyB is the Shortcode
+    const partyB = process.env.MPESA_PARTY_B || process.env.MPESA_SHORTCODE;
+
     const data = {
         BusinessShortCode: process.env.MPESA_SHORTCODE,
         Password: password,
         Timestamp: timestamp,
-        TransactionType: "CustomerPayBillOnline",
+        TransactionType: transactionType,
         Amount: amount,
         PartyA: phoneNumber,
-        PartyB: process.env.MPESA_SHORTCODE,
+        PartyB: partyB,
         PhoneNumber: phoneNumber,
         CallBackURL: callBackUrl,
         AccountReference: "FFSignal Pro",
