@@ -18,6 +18,7 @@ const {
 const { protect } = require('../middleware/auth.middleware');
 const { admin } = require('../middleware/admin.middleware');
 const { handleValidationErrors } = require('../middleware/validation.middleware');
+const multer = require('multer');
 
 const { storage } = require('../config/cloudinary');
 const upload = multer({ storage });
