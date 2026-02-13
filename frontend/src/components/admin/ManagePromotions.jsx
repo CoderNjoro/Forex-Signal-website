@@ -34,6 +34,13 @@ const ManagePromotions = () => {
     loadPromotions();
   }, []);
 
+  const getImageUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    const baseUrl = API_URL.replace('/api', '');
+    return `${baseUrl}/${path}`;
+  };
+
   const loadPromotions = async () => {
     setLoading(true);
     try {
@@ -68,7 +75,7 @@ const ManagePromotions = () => {
       endDate: new Date(promo.endDate).toISOString().split('T')[0],
       isActive: promo.isActive,
     });
-    setPreviewUrl(promo.image ? `${API_URL.replace('/api', '')}/${promo.image}` : null);
+    setPreviewUrl(promo.image ? getImageUrl(promo.image) : null);
     setShowModal(true);
   };
 
@@ -198,7 +205,7 @@ const ManagePromotions = () => {
 
               {promo.image && (
                 <div className="w-full h-32 rounded-xl overflow-hidden mb-4 border border-gray-100 dark:border-gray-700">
-                  <img src={`${API_URL.replace('/api', '')}/${promo.image}`} alt={promo.title} className="w-full h-full object-cover" />
+                  <img src={getImageUrl(promo.image)} alt={promo.title} className="w-full h-full object-cover" />
                 </div>
               )}
 

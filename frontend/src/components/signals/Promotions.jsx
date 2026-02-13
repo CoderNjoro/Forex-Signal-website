@@ -15,6 +15,13 @@ const Promotions = () => {
     loadPromotions();
   }, []);
 
+  const getImageUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    const baseUrl = API_URL.replace('/api', '');
+    return `${baseUrl}/${path}`;
+  };
+
   const loadPromotions = async () => {
     try {
       const data = await promotionService.getPromotions();
@@ -62,7 +69,7 @@ const Promotions = () => {
             >
               {promo.image ? (
                 <div className="h-48 w-full overflow-hidden relative">
-                  <img src={`${API_URL.replace('/api', '')}/${promo.image}`} alt={promo.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                  <img src={getImageUrl(promo.image)} alt={promo.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                   <div className="absolute bottom-4 left-4">
                     <span className="px-3 py-1 rounded-full bg-indigo-500 text-white text-[10px] font-bold">LIMITED TIME</span>
@@ -109,7 +116,7 @@ const Promotions = () => {
 
             {selectedPromo.image && (
               <div className="h-64 sm:h-80 w-full">
-                <img src={`${API_URL.replace('/api', '')}/${selectedPromo.image}`} alt={selectedPromo.title} className="w-full h-full object-cover" />
+                <img src={getImageUrl(selectedPromo.image)} alt={selectedPromo.title} className="w-full h-full object-cover" />
               </div>
             )}
 

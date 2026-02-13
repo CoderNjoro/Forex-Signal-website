@@ -445,12 +445,21 @@ exports.getSignalStats = async (req, res) => {
       { $sort: { _id: 1 } }
     ]);
 
-    // 2. Currency Dominance (Circle Graph)
+    // 2. Currency Dominance (Circle Graph - based on volume and performance)
     const dominance = await Signal.aggregate([
       {
         $group: {
           _id: "$pair",
-          count: { $sum: 1 }
+          count: { $sum: 1 },
+          totalPips: { $sum: { $ifNull: ["$pips", 0] } }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          name: "$_id",
+          count: 1,
+          totalPips: 1
         }
       },
       { $sort: { count: -1 } }

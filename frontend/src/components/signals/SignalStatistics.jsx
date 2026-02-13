@@ -127,17 +127,27 @@ const SignalStatistics = () => {
                   data={dominance}
                   cx="50%"
                   cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  labelLine={true}
+                  label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
                   outerRadius={100}
                   fill="#8884d8"
                   dataKey="count"
+                  nameKey="name"
                 >
                   {dominance.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip 
+                  formatter={(value, name, props) => {
+                    const entry = props.payload;
+                    return [
+                      `${value} Signals`, 
+                      `Currency: ${entry.name}`,
+                      `Pips: ${entry.totalPips > 0 ? '+' : ''}${entry.totalPips}`
+                    ];
+                  }}
+                />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
