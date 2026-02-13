@@ -10,9 +10,15 @@ const updateSubscriptionPrice = async (usd, kes) => {
   return response.data;
 };
 
+const updateCryptoSettings = async (cryptoData) => {
+  const response = await api.put('/superadmin/settings/crypto', cryptoData);
+  return response.data;
+};
+
 const settingsService = {
   getSettings,
   updateSubscriptionPrice,
+  updateCryptoSettings,
 };
 
 export default settingsService;

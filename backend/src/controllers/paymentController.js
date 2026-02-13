@@ -1,5 +1,6 @@
 const Payment = require('../models/Payment');
 const User = require('../models/User');
+const Settings = require('../models/Settings');
 const { initiateSTKPush } = require('../utils/mpesa');
 const logActivity = require('../utils/activityLogger');
 
@@ -46,7 +47,7 @@ exports.initiateMpesaPayment = async (req, res) => {
         } else {
             res.status(400).json({
                 success: false,
-                message: "Failed to initiate M-Pesa payment"
+                message: "Failed to initialize M-Pesa payment"
             });
         }
     } catch (error) {
@@ -114,8 +115,9 @@ exports.initiateCryptoPayment = async (req, res) => {
     try {
         const { amount, currency } = req.body;
         
-        // This would typically return a wallet address
-        const cryptoAddress = process.env.USDT_WALLET_ADDRESS || "0xYourWalletAddressHere";
+        const settings = await Settings.getSettings();
+        const cryptoAddress = settings.cryptoSettings?.usdtAddress || process.env.USDT_WALLET_ADDRESS || "TYourWalletAddressHere";
+        const network = settings.cryptoSettings?.network || "TRC20";
 
         const payment = await Payment.create({
             user: req.user.id,
@@ -136,6 +138,7 @@ exports.initiateCryptoPayment = async (req, res) => {
         res.status(200).json({
             success: true,
             cryptoAddress,
+            network,
             paymentId: payment._id,
             message: "Please send the USDT to the address provided and upload a screenshot for confirmation."
         });

@@ -54,3 +54,35 @@ exports.updateSubscriptionPrice = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// @desc    Update crypto settings
+// @route   PUT /api/superadmin/settings/crypto
+// @access  Private/Superadmin
+exports.updateCryptoSettings = async (req, res) => {
+  try {
+    const { usdtAddress, network, walletLabel } = req.body;
+
+    const settings = await Settings.getSettings();
+    
+    if (usdtAddress !== undefined) settings.cryptoSettings.usdtAddress = usdtAddress;
+    if (network !== undefined) settings.cryptoSettings.network = network;
+    if (walletLabel !== undefined) settings.cryptoSettings.walletLabel = walletLabel;
+
+    await settings.save();
+
+    await logActivity({
+      userId: req.user._id,
+      action: 'update_crypto_settings',
+      details: `Updated crypto settings: Address: ${usdtAddress}, Network: ${network}`,
+      req,
+    });
+
+    res.json({
+      message: 'Crypto settings updated successfully',
+      cryptoSettings: settings.cryptoSettings,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+

@@ -13,6 +13,20 @@ const settingsSchema = new mongoose.Schema({
       min: [0, 'Price cannot be negative'],
     },
   },
+  cryptoSettings: {
+    usdtAddress: {
+      type: String,
+      default: '',
+    },
+    network: {
+      type: String,
+      default: 'TRC20', // USDT TRC20 is most common for low fees
+    },
+    walletLabel: {
+      type: String,
+      default: 'USDT (TRC20)',
+    },
+  },
 }, {
   timestamps: true,
 });

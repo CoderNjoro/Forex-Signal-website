@@ -19,7 +19,12 @@ import {
   ChevronRight,
   Globe,
   Settings,
-  DollarSign
+  DollarSign,
+  Bitcoin,
+  Wallet,
+  CreditCard,
+  Smartphone,
+  Crown
 } from 'lucide-react';
 
 const SuperAdmin = () => {
@@ -40,7 +45,9 @@ const SuperAdmin = () => {
     password: ''
   });
   const [subscriptionSettings, setSubscriptionSettings] = useState({ usd: 10, kes: 1300 });
+  const [cryptoSettings, setCryptoSettings] = useState({ usdtAddress: '', network: 'TRC20', walletLabel: 'USDT (TRC20)' });
   const [settingsLoading, setSettingsLoading] = useState(false);
+  const [cryptoLoading, setCryptoLoading] = useState(false);
 
   useEffect(() => {
     fetchInitialData();
@@ -52,6 +59,9 @@ const SuperAdmin = () => {
       const settings = await settingsService.getSettings();
       if (settings?.premiumSubscriptionPrice) {
         setSubscriptionSettings(settings.premiumSubscriptionPrice);
+      }
+      if (settings?.cryptoSettings) {
+        setCryptoSettings(settings.cryptoSettings);
       }
     } catch (error) {
       console.error('Failed to fetch settings:', error);
@@ -157,6 +167,20 @@ const SuperAdmin = () => {
       toast.error(error.response?.data?.message || 'Failed to update subscription price');
     } finally {
       setSettingsLoading(false);
+    }
+  };
+
+  const handleUpdateCryptoSettings = async (e) => {
+    e.preventDefault();
+    setCryptoLoading(true);
+    try {
+      await settingsService.updateCryptoSettings(cryptoSettings);
+      toast.success('Crypto payment settings updated successfully');
+      fetchSettings();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update crypto settings');
+    } finally {
+      setCryptoLoading(false);
     }
   };
 
@@ -310,6 +334,96 @@ const SuperAdmin = () => {
                 <p className="text-sm text-indigo-700 dark:text-indigo-300 font-medium">
                   <strong>Note:</strong> Changes will immediately affect the subscription page and payment flows. Use this to test payment integrations with different amounts.
                 </p>
+              </div>
+            </form>
+          </div>
+
+          <div className="p-8 border-t border-gray-100 dark:border-gray-700">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3 mb-6">
+              <Bitcoin size={28} className="text-orange-500" />
+              Crypto Payment Settings
+            </h2>
+            
+            <form onSubmit={handleUpdateCryptoSettings} className="space-y-6 max-w-2xl">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">
+                    USDT (TRC20) Wallet Address
+                  </label>
+                  <div className="relative">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                      <Wallet size={20} />
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      className="w-full pl-12 pr-4 py-4 rounded-2xl border border-gray-100 dark:border-gray-700 dark:bg-gray-900 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-semibold"
+                      placeholder="T..."
+                      value={cryptoSettings.usdtAddress}
+                      onChange={(e) => setCryptoSettings({...cryptoSettings, usdtAddress: e.target.value})}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2 ml-1">The USDT address where you will receive payments</p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">
+                    Network
+                  </label>
+                  <div className="relative">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                      <Globe size={20} />
+                    </div>
+                    <select
+                      className="w-full pl-12 pr-4 py-4 rounded-2xl border border-gray-100 dark:border-gray-700 dark:bg-gray-900 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-semibold appearance-none"
+                      value={cryptoSettings.network}
+                      onChange={(e) => setCryptoSettings({...cryptoSettings, network: e.target.value})}
+                    >
+                      <option value="TRC20">TRC20 (Recommended)</option>
+                      <option value="ERC20">ERC20</option>
+                      <option value="BEP20">BEP20</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">
+                    Wallet Label
+                  </label>
+                  <div className="relative">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                      <CreditCard size={20} />
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      className="w-full pl-12 pr-4 py-4 rounded-2xl border border-gray-100 dark:border-gray-700 dark:bg-gray-900 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-semibold"
+                      placeholder="USDT (TRC20)"
+                      value={cryptoSettings.walletLabel}
+                      onChange={(e) => setCryptoSettings({...cryptoSettings, walletLabel: e.target.value})}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6">
+                <button
+                  type="submit"
+                  disabled={cryptoLoading}
+                  className="w-full md:w-auto px-8 py-4 rounded-2xl bg-orange-500 text-white font-bold hover:bg-orange-600 disabled:opacity-50 transition-colors shadow-xl shadow-orange-200 dark:shadow-none flex items-center justify-center gap-2"
+                >
+                  {cryptoLoading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    <>
+                      <Bitcoin size={20} />
+                      Update Crypto Settings
+                    </>
+                  )}
+                </button>
               </div>
             </form>
           </div>

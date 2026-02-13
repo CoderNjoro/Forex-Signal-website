@@ -8,7 +8,7 @@ const {
   getOverview,
   getSubscriptions
 } = require('../controllers/superAdminController');
-const { updateSubscriptionPrice } = require('../controllers/settingsController');
+const { updateSubscriptionPrice, updateCryptoSettings } = require('../controllers/settingsController');
 const { protect } = require('../middleware/auth.middleware');
 const { superadmin } = require('../middleware/superadmin.middleware');
 
@@ -22,5 +22,6 @@ router.patch('/admins/:id/promotion-perm', togglePromotionPermission);
 router.get('/overview', getOverview);
 router.get('/subscriptions', getSubscriptions);
 router.put('/settings/subscription-price', updateSubscriptionPrice);
+router.put('/settings/crypto', updateCryptoSettings);
 
 module.exports = router;
