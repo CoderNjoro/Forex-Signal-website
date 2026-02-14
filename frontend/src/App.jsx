@@ -24,6 +24,7 @@ import Fundamentals from './pages/Fundamentals';
 import Discussions from './pages/Discussions';
 import Topic from './pages/Topic';
 import Checkout from './pages/Checkout';
+import ForgotPassword from './components/auth/ForgotPassword';
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
                   <Route path="/" element={<Home />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route
                     path="/signals"
                     element={
