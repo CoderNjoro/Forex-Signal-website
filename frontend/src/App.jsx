@@ -23,6 +23,7 @@ import Promotions from './components/signals/Promotions';
 import Fundamentals from './pages/Fundamentals';
 import Discussions from './pages/Discussions';
 import Topic from './pages/Topic';
+import Checkout from './pages/Checkout';
 
 function App() {
   return (
@@ -91,6 +92,14 @@ function App() {
                     element={
                       <ProtectedRoute>
                         <Subscription />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/checkout"
+                    element={
+                      <ProtectedRoute>
+                        <Checkout />
                       </ProtectedRoute>
                     }
                   />

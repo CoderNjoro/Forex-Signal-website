@@ -37,29 +37,41 @@ const logActivity = async ({ userId, action, details, req, metadata }) => {
                       ip.startsWith('10.') || 
                       ip.startsWith('172.');
 
-      // Fetch Geolocation data
+      // Fetch Geolocation data asynchronously to avoid blocking
       if (!isLocal) {
-        try {
-          const geoResponse = await axios.get(`http://ip-api.com/json/${ip}?fields=status,country,countryCode`);
-          if (geoResponse.data.status === 'success') {
-            activityData.country = geoResponse.data.country;
-            activityData.countryCode = geoResponse.data.countryCode;
-          } else {
-            activityData.country = 'Unknown Location';
-            activityData.countryCode = 'UN';
+        // We start the geo lookup but don't await it BEFORE creating the activity record
+        // actually, to be simple we'll just not block the main execution
+        activityData.countryCode = 'PENDING';
+        
+        // Use a background task for geo to avoid blocking main thread
+        const fetchGeoData = async () => {
+          try {
+            const geoResponse = await axios.get(`http://ip-api.com/json/${ip}?fields=status,country,countryCode`);
+            if (geoResponse.data.status === 'success') {
+              await Activity.findOneAndUpdate(
+                { _id: activity._id },
+                { 
+                  country: geoResponse.data.country,
+                  countryCode: geoResponse.data.countryCode
+                }
+              );
+            }
+          } catch (geoError) {
+            console.error('Background Geo Error:', geoError.message);
           }
-        } catch (geoError) {
-          console.error('Failed to fetch geo data:', geoError.message);
-          activityData.country = 'Geolocation Error';
-          activityData.countryCode = 'UN';
-        }
+        };
+
+        // Create activity first, then update it with geo data
+        const activity = await Activity.create(activityData);
+        fetchGeoData(); // Fire and forget
+        return activity;
       } else {
         activityData.country = 'Local Network';
         activityData.countryCode = 'LOCAL';
       }
     }
 
-    await Activity.create(activityData);
+    return await Activity.create(activityData);
   } catch (error) {
     console.error('Failed to log activity:', error.message);
     // Don't throw error to prevent disrupting the main flow
