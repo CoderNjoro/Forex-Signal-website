@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
-import { Mail, Lock, LogIn, ArrowRight, UserPlus, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, LogIn } from 'lucide-react';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -37,126 +37,131 @@ const Login = () => {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#050505]">
-      {/* Dynamic Background */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/10 blur-[120px] rounded-full animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full animate-pulse delay-700" />
-        <div className="absolute top-[30%] right-[20%] w-[10%] h-[10%] bg-indigo-500/5 blur-[80px] rounded-full" />
-      </div>
-      
-      {/* Network Grid Overlay */}
-      <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none" 
-        style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '40px 40px' }} 
-      />
-
-      <div className="relative z-10 w-full max-w-[440px] px-6">
-        <div className="group relative">
-           {/* Outer Glow */}
-          <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-[3rem] blur opacity-10 group-hover:opacity-20 transition duration-1000" />
-          
-          <div className="relative bg-[#0A0C10]/80 backdrop-blur-2xl border border-white/10 p-10 rounded-[2.8rem] shadow-2xl">
-            <div className="text-center mb-10">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-600/10 rounded-2xl mb-6 border border-indigo-500/20 shadow-inner group-hover:scale-110 transition-transform duration-500">
-                <ShieldCheck className="text-indigo-500" size={32} />
-              </div>
-              <h2 className="text-3xl font-black text-white tracking-tight mb-3">
-                Account <span className="text-indigo-500">Secure</span>
-              </h2>
-              <p className="text-indigo-200/40 text-sm font-medium tracking-wide">
-                Authorized Access Only
-              </p>
-            </div>
-
-            <form className="space-y-6" onSubmit={handleSubmit}>
-              <div className="space-y-5">
-                <div className="space-y-2">
-                  <label htmlFor="email" className="block text-[10px] font-black text-indigo-300/30 uppercase tracking-[0.3em] ml-1">
-                    Terminal ID / Email
-                  </label>
-                  <div className="relative group/input">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-300/20 group-focus-within/input:text-indigo-500 transition-colors" size={18} />
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      required
-                      className="w-full pl-12 pr-4 py-4 bg-white/[0.03] border border-white/10 rounded-2xl text-white placeholder-white/5 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/50 focus:bg-white/[0.05] outline-none transition-all font-medium"
-                      placeholder="admin@forex.com"
-                      value={formData.email}
-                      onChange={handleChange}
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center ml-1">
-                    <label htmlFor="password" className="block text-[10px] font-black text-indigo-300/30 uppercase tracking-[0.3em]">
-                      Access Key
-                    </label>
-                  </div>
-                  <div className="relative group/input">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-300/20 group-focus-within/input:text-indigo-500 transition-colors" size={18} />
-                    <input
-                      id="password"
-                      name="password"
-                      type={showPassword ? "text" : "password"}
-                      required
-                      className="w-full pl-12 pr-12 py-4 bg-white/[0.03] border border-white/10 rounded-2xl text-white placeholder-white/5 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/50 focus:bg-white/[0.05] outline-none transition-all font-mono"
-                      placeholder="••••••••"
-                      value={formData.password}
-                      onChange={handleChange}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-indigo-300/20 hover:text-indigo-400 transition-colors"
-                    >
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between px-1">
-                <label className="flex items-center gap-2 cursor-pointer group/check">
-                  <div className="w-4 h-4 rounded-md border border-white/10 bg-white/5 flex items-center justify-center group-hover/check:border-indigo-500/50 transition-colors">
-                    <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full opacity-0 group-hover/check:opacity-100 transition-opacity" />
-                  </div>
-                  <span className="text-[10px] font-bold text-indigo-200/40 uppercase tracking-widest">Keep Session</span>
-                </label>
-                <Link to="/forgot-password" size="sm" className="text-[10px] font-bold text-indigo-500/60 hover:text-indigo-400 uppercase tracking-[0.1em] transition-colors">Recover Access</Link>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="group relative w-full overflow-hidden px-8 py-5 bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase tracking-[0.2em] text-xs rounded-2xl transition-all shadow-2xl shadow-indigo-600/20 active:scale-[0.98]"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:animate-shimmer" />
-                {loading ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white mx-auto"></div>
-                ) : (
-                  <span className="flex items-center justify-center gap-2">
-                    Initialize Portal
-                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                  </span>
-                )}
-              </button>
-            </form>
-
-            <div className="mt-10 pt-8 border-t border-white/5 text-center">
-              <p className="text-indigo-200/20 text-[10px] font-black uppercase tracking-[0.2em]">
-                System Newcomer?{' '}
-                <Link
-                  to="/register"
-                  className="text-indigo-500 hover:text-indigo-400 transition-colors ml-1"
-                >
-                  Create Identity
-                </Link>
-              </p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        {/* Header */}
+        <div className="text-center">
+          <div className="flex justify-center mb-6">
+            <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <LogIn className="w-8 h-8 text-white" />
             </div>
           </div>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Welcome Back
+          </h2>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            Sign in to access your trading dashboard
+          </p>
+        </div>
+
+        {/* Login Form */}
+        <div className="bg-white dark:bg-gray-800 shadow-xl rounded-2xl p-8 border border-gray-200 dark:border-gray-700">
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            {/* Email Field */}
+            <div>
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Email Address
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                  placeholder="Enter your email"
+                  value={formData.email}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+
+            {/* Password Field */}
+            <div>
+              <label htmlFor="password" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  className="block w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                  placeholder="Enter your password"
+                  value={formData.password}
+                  onChange={handleChange}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Remember Me & Forgot Password */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  id="remember-me"
+                  name="remember-me"
+                  type="checkbox"
+                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded cursor-pointer"
+                />
+                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                  Remember me
+                </label>
+              </div>
+
+              <Link
+                to="/forgot-password"
+                className="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+              >
+                Forgot password?
+              </Link>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            >
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <span>Signing in...</span>
+                </>
+              ) : (
+                <>
+                  <LogIn className="h-5 w-5" />
+                  <span>Sign In</span>
+                </>
+              )}
+            </button>
+          </form>
+        </div>
+
+        {/* Sign Up Link */}
+        <div className="text-center">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Don't have an account?{' '}
+            <Link
+              to="/register"
+              className="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+            >
+              Create an account
+            </Link>
+          </p>
         </div>
       </div>
     </div>
@@ -164,3 +169,4 @@ const Login = () => {
 };
 
 export default Login;
+

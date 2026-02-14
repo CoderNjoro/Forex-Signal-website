@@ -5,6 +5,8 @@ const {
   register,
   login,
   getMe,
+  forgotPassword,
+  resetPassword,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth.middleware');
 const { handleValidationErrors } = require('../middleware/validation.middleware');
@@ -36,6 +38,29 @@ router.post(
 );
 
 router.get('/me', protect, getMe);
+
+// Password reset routes
+router.post(
+  '/forgot-password',
+  [
+    body('email').isEmail().withMessage('Please provide a valid email'),
+    handleValidationErrors,
+  ],
+  forgotPassword
+);
+
+router.post(
+  '/reset-password',
+  [
+    body('email').isEmail().withMessage('Please provide a valid email'),
+    body('resetToken').notEmpty().withMessage('Reset token is required'),
+    body('newPassword')
+      .isLength({ min: 6 })
+      .withMessage('Password must be at least 6 characters'),
+    handleValidationErrors,
+  ],
+  resetPassword
+);
 
 // TEMPORARY ENDPOINT - Remove after creating superadmin in production
 // This endpoint creates the superadmin account if it doesn't exist
