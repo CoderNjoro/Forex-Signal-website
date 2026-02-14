@@ -102,6 +102,17 @@ exports.getSignal = async (req, res) => {
     // Mask signal for free users if it's a premium signal
     signal = maskSignal(signal, req.user);
 
+    // Log activity if it's not an admin viewing
+    if (req.user && req.user.role === 'user') {
+      await logActivity({
+        userId: req.user._id,
+        action: 'view_signal',
+        details: `Viewed signal ${signal.pair}`,
+        req,
+        metadata: { signalId: signal._id }
+      });
+    }
+
     res.json(signal);
   } catch (error) {
     res.status(500).json({ message: error.message });

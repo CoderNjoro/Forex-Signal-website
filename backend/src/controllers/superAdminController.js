@@ -183,3 +183,63 @@ exports.getSubscriptions = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// @desc    Get all user activities
+// @route   GET /api/superadmin/activities
+// @access  Private/Superadmin
+exports.getUserActivities = async (req, res) => {
+  try {
+    const { action, userId, page = 1, limit = 50 } = req.query;
+    const query = {};
+    
+    if (action) query.action = action;
+    if (userId) query.user = userId;
+
+    const activities = await Activity.find(query)
+      .populate('user', 'username email role')
+      .sort('-createdAt')
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
+
+    const total = await Activity.countDocuments(query);
+
+    res.json({
+      activities,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page,
+      total
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get all payments
+// @route   GET /api/superadmin/payments
+// @access  Private/Superadmin
+exports.getAllPayments = async (req, res) => {
+  try {
+    const Payment = require('../models/Payment');
+    const { status, page = 1, limit = 50 } = req.query;
+    const query = {};
+    
+    if (status) query.status = status;
+
+    const payments = await Payment.find(query)
+      .populate('user', 'username email')
+      .sort('-createdAt')
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
+
+    const total = await Payment.countDocuments(query);
+
+    res.json({
+      payments,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page,
+      total
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

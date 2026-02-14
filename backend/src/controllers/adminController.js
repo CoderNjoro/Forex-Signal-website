@@ -51,11 +51,31 @@ exports.updateUser = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    const oldSub = user.subscriptionType;
     if (role) user.role = role;
     if (subscriptionType) user.subscriptionType = subscriptionType;
     if (typeof isActive === 'boolean') user.isActive = isActive;
 
     const updatedUser = await user.save();
+
+    // Log the change
+    await logActivity({
+      userId: req.user._id,
+      action: 'update_profile',
+      details: `Updated user ${user.username}: role=${role || user.role}, sub=${subscriptionType || user.subscriptionType}`,
+      req,
+      metadata: { targetUserId: user._id }
+    });
+
+    // If subscription was upgraded manually, also log subscription_upgraded for the target user
+    if (subscriptionType === 'premium' && oldSub !== 'premium') {
+        await logActivity({
+            userId: user._id,
+            action: 'subscription_upgraded',
+            details: `Subscription upgraded to Premium by administrator ${req.user.username}`,
+            req
+        });
+    }
 
     res.json({
       _id: updatedUser._id,

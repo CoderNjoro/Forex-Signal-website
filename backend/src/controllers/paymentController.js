@@ -90,6 +90,15 @@ exports.mpesaCallback = async (req, res) => {
                 user.subscriptionExpiresAt = expiryDate;
                 
                 await user.save();
+                
+                // Log payment completion
+                await logActivity({
+                    userId: payment.user,
+                    action: 'payment_completed',
+                    details: `M-Pesa payment of ${payment.amount} ${payment.currency} completed`,
+                    metadata: { transactionId: payment.transactionId }
+                });
+
                 await logActivity({
                     userId: user._id, 
                     action: 'subscription_upgraded', 
@@ -99,6 +108,13 @@ exports.mpesaCallback = async (req, res) => {
         } else {
             payment.status = 'failed';
             await payment.save();
+            
+            await logActivity({
+                userId: payment.user, 
+                action: 'payment_failed', 
+                details: `M-Pesa payment failed/cancelled`,
+                metadata: { checkoutRequestID: stkCallback.CheckoutRequestID }
+            });
         }
 
         res.status(200).json({ success: true });
@@ -165,6 +181,14 @@ exports.confirmCryptoPayment = async (req, res) => {
         if (screenshot) payment.screenshot = screenshot;
         payment.status = 'pending'; // Stays pending until admin reviews
         await payment.save();
+
+        await logActivity({
+            userId: req.user.id, 
+            action: 'payment_initiated', 
+            details: `Crypto payment confirmation submitted for $${payment.amount}`,
+            req,
+            metadata: { paymentId: payment._id, transactionId }
+        });
 
         res.status(200).json({
             success: true,

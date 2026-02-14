@@ -25,6 +25,11 @@ const activitySchema = new mongoose.Schema({
       'delete_promotion',
       'grant_promo_perm',
       'revoke_promo_perm',
+      'payment_initiated',
+      'payment_completed',
+      'payment_failed',
+      'view_signal',
+      'subscription_upgraded',
       'other'
     ],
   },

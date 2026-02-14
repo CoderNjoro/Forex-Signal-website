@@ -6,7 +6,9 @@ const {
   toggleAdminBlock,
   togglePromotionPermission,
   getOverview,
-  getSubscriptions
+  getSubscriptions,
+  getUserActivities,
+  getAllPayments
 } = require('../controllers/superAdminController');
 const { updateSubscriptionPrice, updateCryptoSettings } = require('../controllers/settingsController');
 const { protect } = require('../middleware/auth.middleware');
@@ -21,6 +23,8 @@ router.patch('/admins/:id/block', toggleAdminBlock);
 router.patch('/admins/:id/promotion-perm', togglePromotionPermission);
 router.get('/overview', getOverview);
 router.get('/subscriptions', getSubscriptions);
+router.get('/activities', getUserActivities);
+router.get('/payments', getAllPayments);
 router.put('/settings/subscription-price', updateSubscriptionPrice);
 router.put('/settings/crypto', updateCryptoSettings);
 

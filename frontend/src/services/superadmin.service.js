@@ -25,13 +25,18 @@ const getOverview = async () => {
   return response.data;
 };
 
-const getActivityLogs = async (page = 1) => {
-  const response = await api.get(`/admin/activity?page=${page}`);
+const getActivityLogs = async (page = 1, action = '') => {
+  const response = await api.get(`/superadmin/activities?page=${page}&action=${action}`);
   return response.data;
 };
 
 const getSubscriptions = async () => {
   const response = await api.get('/superadmin/subscriptions');
+  return response.data;
+};
+
+const getPayments = async (page = 1, status = '') => {
+  const response = await api.get(`/superadmin/payments?page=${page}&status=${status}`);
   return response.data;
 };
 
@@ -42,5 +47,6 @@ export const superAdminService = {
   togglePromotionPermission,
   getOverview,
   getActivityLogs,
-  getSubscriptions
+  getSubscriptions,
+  getPayments
 };
