@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, X, Crown, Zap, Shield, TrendingUp } from 'lucide-react';
+import { Check, X, Crown, Zap, Shield, TrendingUp, CheckCircle2 } from 'lucide-react';
 import settingsService from '../services/settings.service';
 import toast from 'react-hot-toast';
 
