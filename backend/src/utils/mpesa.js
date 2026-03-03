@@ -8,6 +8,20 @@ const getMpesaBaseUrl = () => {
         : "https://sandbox.safaricom.co.ke";
 };
 
+// Diagnostic: log M-Pesa config status at startup (no secret values)
+const logMpesaConfig = () => {
+    const env = process.env.MPESA_ENVIRONMENT || 'sandbox (default)';
+    console.log('=== M-Pesa Config Check ===');
+    console.log('MPESA_ENVIRONMENT:', env);
+    console.log('MPESA_CONSUMER_KEY:', process.env.MPESA_CONSUMER_KEY ? `SET (${process.env.MPESA_CONSUMER_KEY.slice(0,6)}...)` : 'MISSING ❌');
+    console.log('MPESA_CONSUMER_SECRET:', process.env.MPESA_CONSUMER_SECRET ? 'SET ✓' : 'MISSING ❌');
+    console.log('MPESA_SHORTCODE:', process.env.MPESA_SHORTCODE || 'MISSING ❌');
+    console.log('MPESA_PASSKEY:', process.env.MPESA_PASSKEY ? 'SET ✓' : 'MISSING ❌');
+    console.log('BACKEND_URL:', process.env.BACKEND_URL || 'MISSING ❌ (using fallback)');
+    console.log('===========================');
+};
+logMpesaConfig();
+
 const getMpesaToken = async () => {
     const consumer_key = process.env.MPESA_CONSUMER_KEY;
     const consumer_secret = process.env.MPESA_CONSUMER_SECRET;
@@ -94,20 +108,36 @@ const initiateSTKPush = async (phoneNumber, amount) => {
 
     try {
         console.log(`Initiating STK Push (${process.env.MPESA_ENVIRONMENT || 'sandbox'}) for:`, phoneNumber, 'Amount:', amount);
+        console.log('STK Push payload:', JSON.stringify({ ...data, Password: '[HIDDEN]' }, null, 2));
         const response = await axios.post(url, data, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
         });
+        console.log('STK Push response:', JSON.stringify(response.data, null, 2));
         return response.data;
     } catch (error) {
-        console.error('Error initiating STK Push:', error.response?.data || error.message);
-        // Log the detailed error from Safaricom if available
-        if (error.response?.data) {
-             console.error('Safaricom API Error Details:', JSON.stringify(error.response.data, null, 2));
+        // Log the full detailed error from Safaricom
+        console.error('=== STK Push Failed ===');
+        console.error('HTTP Status:', error.response?.status);
+        console.error('Safaricom Error Body:', JSON.stringify(error.response?.data, null, 2));
+        console.error('Axios Error Message:', error.message);
+        console.error('=======================');
+        
+        const safaricomError = error.response?.data;
+        let errorMessage = safaricomError?.errorMessage 
+            || safaricomError?.ResultDesc 
+            || safaricomError?.requestId 
+            || error.message;
+        
+        // Surface the Safaricom error code if available
+        if (safaricomError?.errorCode) {
+            errorMessage = `[Code ${safaricomError.errorCode}] ${errorMessage}`;
+        }
+        if (safaricomError?.ResultCode && safaricomError.ResultCode !== 0) {
+            errorMessage = `[Code ${safaricomError.ResultCode}] ${errorMessage}`;
         }
         
-        const errorMessage = error.response?.data?.errorMessage || error.response?.data?.requestId || error.message;
         throw new Error(`STK Push Error: ${errorMessage}`);
     }
 };

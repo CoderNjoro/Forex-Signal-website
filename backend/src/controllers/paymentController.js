@@ -9,7 +9,25 @@ const logActivity = require('../utils/activityLogger');
 // @access  Private
 exports.initiateMpesaPayment = async (req, res) => {
     try {
-        const { phoneNumber, amount } = req.body;
+        const { phoneNumber } = req.body;
+        let { amount } = req.body;
+
+        // Validate & fallback: if amount is 0, missing, or falsy, fetch from settings
+        amount = Number(amount);
+        if (!amount || amount <= 0) {
+            console.warn('[M-Pesa] Amount was 0 or missing from request — fetching from settings');
+            const settings = await Settings.getSettings();
+            amount = settings?.premiumSubscriptionPrice?.kes || 1300; // default KES 1300
+            console.log('[M-Pesa] Using fallback amount from settings:', amount);
+        }
+
+        // Hard guard: never send a 0-amount STK push to Safaricom
+        if (amount <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Payment amount cannot be zero. Please contact support.'
+            });
+        }
         
         // Format phone number to 254xxxxxxxxx
         let formattedPhone = phoneNumber.replace('+', '');
@@ -19,6 +37,7 @@ exports.initiateMpesaPayment = async (req, res) => {
             formattedPhone = '254' + formattedPhone;
         }
 
+        console.log(`[M-Pesa] Initiating payment — Phone: ${formattedPhone}, Amount: KES ${amount}`);
         const response = await initiateSTKPush(formattedPhone, amount);
 
         if (response.ResponseCode === "0") {
